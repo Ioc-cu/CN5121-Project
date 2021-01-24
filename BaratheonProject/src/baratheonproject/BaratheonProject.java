@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -27,7 +28,7 @@ public class BaratheonProject {
     
     public static class Input{
         
-        //Reads file contents and adds them to a LinkedList
+        //Part 2: Reads file contents and adds them to a LinkedList
         public static void read(String file) throws IOException{
             BufferedReader in = new BufferedReader(new FileReader (file));
             String str;
@@ -36,10 +37,10 @@ public class BaratheonProject {
                 list.add(str);
             }
             listArray = list.toArray(new String[0]);
-            //System.out.println(list + "\n" + listArray[0]); Arrayprinting for debugging purposes
+            //System.out.println(list + "\n" + listArray[0]); //Arrayprinting for debugging purposes
         }
         
-       //Scans for name queries in order to do comparisons (See Comparison Class)
+       //Part 5:Scans for name queries in order to do comparisons (See Comparison Class)
        public static void getName(){
             Scanner scanner = new Scanner(System.in);
             System.out.println("Enter the first name: ");
@@ -56,7 +57,7 @@ public class BaratheonProject {
             }
         }
 
-        //check if a name exists in the list...
+        //Part 5: check if a name exists in the list...
         public static boolean checkNames(String name){
             for (String str : namesArray) {
                 if (str.equals(name)) {
@@ -67,7 +68,7 @@ public class BaratheonProject {
         }
     }
     
-    //Adds male or female names on a list, and namesList is later used for part 3.
+    //Adds male or female names on a list,along with namesList which are used for parts 3-5.
     public static class Names {
         public static void namesAlphabetically(){ // Alphabetical Name Sorting
             int i =0;
@@ -80,7 +81,6 @@ public class BaratheonProject {
                     String arr[] = str.split(",",2);
                     namesList.add(arr[0]);
                     femalesList.add(arr[0]);
-                    //System.out.println(femalesList);
                 }
                 i++;
             }
@@ -93,15 +93,26 @@ public class BaratheonProject {
         
         //Part 3: Create a file named namesSorted.txt
         public static void writeNames() throws FileNotFoundException, UnsupportedEncodingException{
+            LinkedList<String> sortedNames = new LinkedList<String>();
             PrintWriter writer = new PrintWriter("namesSorted.txt","UTF-8");
-            for (String str : namesArray) {
-                writer.println(str);
+            
+            //Adds the names into an array
+            for (String str : listArray) {
+                if (str.trim().contains(",male") || str.trim().contains(",female")) {
+                    sortedNames.add(str);
+                }
+            }
+            
+            //Sorts the names of said list alphabetically, and prints them to the file
+            Collections.sort(sortedNames);
+            for (String sortedName : sortedNames) {
+                writer.println(sortedName);
             }
             writer.close();
         }
         
         //Part 5:Initialization and writing of LinkledList contents on a .dot file
-        public static void writeResult(String firstName, String secondName, String relation) throws IOException{
+        public static void writeTreeResult(String firstName, String secondName, String relation) throws IOException{
             
             //Initializing object variable before assigning it an object refference
             PrintWriter writer = null;
@@ -117,7 +128,7 @@ public class BaratheonProject {
             //Marriage first along with children is a subgraph
             if (relation.equals("husband")) {
                 writer.println("\nsubgraph node"+openedFile+"{");
-                conditionalWriter(firstName,secondName,writer); //Need to write Linking nodes here?
+                conditionalWriter(firstName,secondName,writer); //Need to write Linking nodes here
                 writer.println("  {\n  rank=same;\n \""+firstName+"\";\n \""+secondName+"\";\n  }\n");
                 writer.println("  \""+firstName+"\" -> \""+secondName+"\" [dir=none, color=\"black:black\", label=\""+"married"+"\", weight=8]");
                 writer.println("}\n");
@@ -164,18 +175,14 @@ public class BaratheonProject {
             Runtime.getRuntime().exec("cmd start cmd.exe /c " + command);
         }
         
-        //Core function of Part 5,uses writeResult and closeGraphVizFile in order to create the .dot file
+        //Core function of Part 5,uses writeResult and closeGraphVizFile in order to create the .dot file, and createPNG to visualize the .dot file
         public static void createDOT() throws IOException{
             String[] segments;
             for (String str : listArray) {
                 //Making sure that the string elements of the list have at least two comma seperators (represents relations)
                 if (str.chars().filter(ch -> ch == ',').count() == 2) { 
                     segments = str.split(",",3); //Seperating elements in a String array
-                    
-                    //Printing seperated elements on screen
-                    //System.out.println("firstName: " + segments[0] + "    relation: " + segments[1] + "    secondName: " + segments[2]); 
-                    
-                    writeResult(segments[0],segments[2],segments[1]); //Parsing elements to writeResult Function
+                    writeTreeResult(segments[0],segments[2],segments[1]); //Parsing elements to writeResult Function
                 }
             }
             closeGraphVizFile(); //Finalizing .dot file
@@ -194,8 +201,7 @@ public class BaratheonProject {
     }    
     
     public static class Comparison{
-        
-        public static void parents() throws IOException{ //Relation Exists
+        public static void parents() throws IOException{
             int i = 0;
             for (String str : listArray) {
                 if (str.trim().contains(query[0]) && (str.trim().contains(",father,") || str.trim().contains(",mother,")) && str.trim().contains(query[1])){
@@ -210,7 +216,7 @@ public class BaratheonProject {
             }
         }
         
-        public static void offsprings() throws IOException{ // Needs work,relation doesn't exist,is derivative
+        public static void offsprings() throws IOException{
             int i = 0;
             for (String str : listArray) {
                 if (str.trim().contains(query[0]) && (str.trim().contains(",father,") || str.trim().contains(",mother,")) && str.trim().contains(query[1])){
@@ -224,7 +230,7 @@ public class BaratheonProject {
                 i++;
             }
         }
-        public static void siblings() throws IOException{ //Derivative,Needs work.
+        public static void siblings() throws IOException{
             int i = 0;
             //In order to find if the queries are siblings, they must have the same parent,so we make a parent table for one queryName
             String[] parents = new String[2];
@@ -251,7 +257,7 @@ public class BaratheonProject {
             }
         }
         
-        public static void cousins() throws IOException{ //Derivative,creates 3 tree levels
+        public static void cousins() throws IOException{
             int i = 0;
             int k = 0;
             String[] parentsFirst = new String[2];
@@ -357,7 +363,7 @@ public class BaratheonProject {
             }
         }
         
-        public static void marriage() throws IOException{ //Exists
+        public static void marriage() throws IOException{
             int i = 0;
             for (String str : listArray) {
                 if (str.trim().contains(query[0]) && (str.trim().contains(",husband,") || str.trim().contains(",wife,")) && str.trim().contains(query[1])){
@@ -373,11 +379,12 @@ public class BaratheonProject {
         }
         
         //Checks if any of the names are grandparents of each other
-        public static void grandparents() throws IOException { //Derivative
+        public static void grandParents() throws IOException {
             int i = 0;
             int k = 0;
             String[] parentsFirst = new String[2];
             String[] parentsSecond = new String[2];
+            //Finds Parents
             for (String str : listArray) {
                 if (str.contains("father," + query[0]) || str.contains("mother," + query[0])) {
                     String arr[] = str.split(",",3);
@@ -390,13 +397,14 @@ public class BaratheonProject {
                 }
             }
             
+            //Find Grandparents
             i = 0;
             for (String str : listArray) {
                 if (
-                    str.contains(query[0] + ",father," + parentsSecond[0]) || str.contains(query[0] + ",mother," + parentsSecond[0])
-                    || str.contains(query[0] + ",father," + parentsSecond[1]) || str.contains(query[0] + ",mother," + parentsSecond[1])
-                    || str.contains(query[1] + ",father," + parentsSecond[0]) || str.contains(query[1] + ",mother," + parentsSecond[0])
-                    || str.contains(query[1] + ",father," + parentsSecond[1]) || str.contains(query[1] + ",mother," + parentsSecond[1])
+                    str.contains(query[0] + ",father," + parentsFirst[0]) || str.contains(query[0] + ",mother," + parentsFirst[0])
+                    || str.contains(query[0] + ",father," + parentsFirst[1]) || str.contains(query[0] + ",mother," + parentsFirst[1])
+                    || str.contains(query[1] + ",father," + parentsFirst[0]) || str.contains(query[1] + ",mother," + parentsFirst[0])
+                    || str.contains(query[1] + ",father," + parentsFirst[1]) || str.contains(query[1] + ",mother," + parentsFirst[1])
                     || str.contains(query[0] + ",father," + parentsSecond[0]) || str.contains(query[0] + ",mother," + parentsSecond[0])
                     || str.contains(query[0] + ",father," + parentsSecond[1]) || str.contains(query[0] + ",mother," + parentsSecond[1])
                     || str.contains(query[1] + ",father," + parentsSecond[0]) || str.contains(query[1] + ",mother," + parentsSecond[0])
@@ -418,7 +426,7 @@ public class BaratheonProject {
         }
         
         //GrandChildren() has the same implementation with Grandparents()
-        public static void grandChildren() throws IOException { //Derivative
+        public static void grandChildren() throws IOException {
             int i = 0;
             int k = 0;
             String[] parentsFirst = new String[2];
@@ -462,7 +470,7 @@ public class BaratheonProject {
             }
         }
         
-        public static void nieceNephew() throws IOException { //Derivative
+        public static void nieceNephew() throws IOException {
             int i = 0;
             int k = 0;
             String[] parentsFirst = new String[2];
@@ -517,7 +525,7 @@ public class BaratheonProject {
             }
         }
         
-        public static void auntUncle() throws IOException { //Derivative
+        public static void auntUncle() throws IOException {
             
             int i = 0;
             int k = 0;
@@ -553,7 +561,7 @@ public class BaratheonProject {
                 }
             }
             
-            //If the niece's grandparents are the same parents as the uncle's, 
+            //If the niece's grandparents are the same parents as the uncle's parents
             i = 0;
             for (String str : listArray) {
                 if (
@@ -585,37 +593,86 @@ public class BaratheonProject {
         
     }
     
+    public static boolean checkList () {
+        boolean bool=false;
+        if (listArray != null) {
+            bool=true;
+        }
+        return bool;
+    }
+
+    public static void mainMenu() throws IOException{
+        //Instantiations
+        Scanner scan = new Scanner(System.in);
+        String input ="";
+        System.out.println("+-----------------------------------+\n|        Welcome to The Menu        |\n+-----------------------------------+"); //Menu Header
+        System.out.println("Please choose the option you want:\n1) Read file and load data\n2) Sort people with Alphabetical order\n3) Find relations\n4) Save data as DOT\n0) Exit"); //Menu Print
+        //Looping Segment
+        while (input != "0") {
+            input = scan.nextLine();
+            //Menu through switch case
+            switch(input){
+                case "1":
+                    System.out.flush();
+                    //Part 2:Reading the .csv file and putting it into a list array
+                    Input.read("family.csv");
+                    Names.namesAlphabetically();
+                    break;
+                case "2":
+                    System.out.flush();
+                    if (checkList()) {
+                        //Part 3 Sorting alphabetically on a file
+                        Output.writeNames();
+                    }else{
+                        System.out.println("listArray isn't filled with names, try the 1) option first!");
+                    }
+                    break;
+                case "3":
+                    System.out.flush();
+                    if (checkList()) {
+                        do{
+                            Input.getName();
+                            if(query[0].equals(query[1])){
+                                System.out.println("A name cannot have a relation with itself, try again!");
+                            }
+                        }while(query[0].equals(query[1]));
+                        //Part 4: Comparison method calls
+                        Comparison.parents();
+                        Comparison.offsprings();
+                        Comparison.siblings();
+                        Comparison.cousins();
+                        Comparison.marriage();
+                        Comparison.grandParents();
+                        Comparison.grandChildren();
+                        Comparison.nieceNephew();
+                        Comparison.auntUncle();
+                        Comparison.notRelated();
+                    }else{
+                        System.out.println("listArray isn't filled with names, try the 1) option first!");
+                    }
+                    break;
+                case "4":
+                    System.out.flush();
+                    if (checkList()) {
+                        //Part 5:Creating the .dot file along with dot command execution
+                        Output.createDOT();//Creates the output.dot file along with output.png.
+                    }else{
+                        System.out.println("listArray isn't filled with names, try the 1) option first!");
+                    }
+                    break;
+                case "0":
+                    System.out.flush();
+                    System.out.println("Thank you for using the Baratheon Family Tree Project!");
+                    return;
+                default:
+                    System.out.flush();
+                    System.out.println("Wrong Input,try again!");
+                    continue;
+            }
+        }
+    }
     
     public static void main(String[] args) throws IOException {
-        
-        //Part 2:Reading the .csv file and aquiring query strings
-        Input.read("family.csv");
-        Names.namesAlphabetically();
-        
-        //In case the same name is entered twice,Ask for the query again
-        do{
-            Input.getName();
-            if(query[0].equals(query[1])){
-            System.out.println("A name cannot have a relation with itself, try again!");
-            }
-        }while(query[0].equals(query[1]));
-        
-        //Part 3 Sorting alphabetically on a file
-        Output.writeNames();
-        
-        //Part 4: Comparison method calls (while each method does it's own relation check,they are all dependant on Comparison.compare(relation, output, index) for repetition elimination)
-        Comparison.parents();
-        Comparison.offsprings();
-        Comparison.siblings();
-        Comparison.cousins();
-        Comparison.marriage();
-        Comparison.grandparents();
-        Comparison.grandChildren();
-        Comparison.nieceNephew();
-        Comparison.auntUncle();
-        Comparison.notRelated();
-        
-        //Part 5:Creating the .dot file along with dot command execution
-        Output.createDOT(); //Creates the output.dot file AND  Finalizes it.
+        mainMenu();
     }
 }
